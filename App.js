@@ -1,97 +1,129 @@
+//import Example from './examples/3-Nesting'
+//export default Example
+
 import * as React from 'react';
-import { View, Text, Button } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { NavigationContainer, TabActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
-function HomeScreen({navigation}) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Home Screen</Text>
-      <Button 
-        title="Go to Details"  
-        onPress={ () => { 
-          //1. Navigate to the Details route with params
-          navigation.navigate('Details' , {
-            //itemId : 86,
-            otherParam: 'anything you want here!!'  
-          })   
-        }} 
-      />
-    </View>
-  );
-}
-
-function DetailsScreen({route, navigation}) {
-  //2. Get the params
-  const {itemId} = route.params
-  const {otherParam} = route.params
-
-  //3. Usse the params
-  return(
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>Details Screen</Text>
-      <Text>itemId: {JSON.stringify(itemId)} </Text>
-      <Text>otherParam: {JSON.stringify(otherParam)} </Text>
-      <Button 
-        title= "Go to Details... again"
-        onPress={ () => 
-          navigation.push('Details' , {
-            itemId: Math.floor(Math.random() * 100),
-            otherParam: "nested details"
-          })
-        } 
-      />
-      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
-      <Button title="Go back" onPress={()=> navigation.goBack()} />
-      <Button 
-        title="Go back to first screen in stack"
-        onPress= {() => navigation.popToTop()} 
-      />
-    </View> 
-  )
-}
+import { createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import ContactListScreen from './screens/ContactListScreen';
+import AddContactScreen from './screens/AddContactScreen';
+//import contacts from './contacts'
+import {fetchUsers} from './api'
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator ();
 
+export default class App extends React.Component {
+  state = {
+    contacts: [{name: "John", phone: "55555555"}],
+  };
 
-function App() {
-  return ( // screenOptions={/**/}
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={"Home"} >
+  componentDidMount() {
+    this.getUsers()
+  }
+
+  getUsers = async () => {
+    const results = await fetchUsers()
+    console.log("App.js - getUsers:")
+    console.log(results)
+    this.setState({contacts: results})
+  }
+
+  addContact = newContact => {
+    this.setState(prevState => ({
+      contacts: [...prevState.contacts, newContact]
+    }));
+    console.log("from App.js - addContact")
+    //console.log(this.state.contacts)
+  };
+ 
+  render() {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name='ContactList'
+            component={ContactListScreen}
+            initialParams={{
+              contacts: this.state.contacts,
+            }}
+          />
         <Stack.Screen 
-          name="Home" 
-          component={HomeScreen}
-          options={{title: 'Overview'}} 
-        />
-        <Stack.Screen 
-          name="Details" 
-          component={DetailsScreen} 
-          initialParams={{ itemId: 42 }}
-        /> 
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+          name='AddContact'
+          component={AddContactScreen}
+          initialParams={{
+            addContact : ( () => this.addContact )
+            }}           
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    )
+  }
 }
 
-//If you didn't specify any params when navigating to this screen, 
-//the initial params will be used. They are also shallow merged with
-//any params that you pass. 
 
 
-export default App;
 
 /*
-Lecture example:
-$ mkdir screens
-$ touch AddContactScreen.js
-$ mv AddContactScreen.js screens/
-$ touch creens/ContactListScreen.js
-
-(App.js)
-<AppNavigator screenProps={{contacts: this.state.contacts }} />
-
-(ContactListScreen.js)
-<SectionListContacts contacts={this.props.screenProps.contacts} />
-
--also pases the addcontact function
+ <Tab.Navigator>
+          <Tab.Screen name="Contacts" component ={Contacts} />
+          <Tab.Screen name="Settings" component ={Settings} />
+        </Tab.Navigator>
+      </NavigationContainer>
 */
+
+
+
+/*
+  state = {
+    contacts
+  };
+  addContact = newContact => {
+    this.setState(prevState => ({
+      contacts: [...prevState.contacts, newContact]
+    }));
+  };
+
+*/
+
+/*
+initialParams={{
+  addContact: this.addContact,
+}}
+*/
+
+
+/*
+function Contacts({contacts}) {
+  return (
+    <Stack.Navigator>
+    <Stack.Screen
+      name='ContactList'
+      component={ContactListScreen}
+      initialParams={{
+        contacts: contacts,
+      }}
+    />
+    <Stack.Screen 
+      name='AddContact'
+      component={AddContactScreen}
+      initialParams={{
+        addContact : ( () => this.addContact )
+      }}           
+    />
+    </Stack.Navigator>
+  )      
+}
+
+function Settings() {
+  return (
+    <View>
+      <Tex>Settings</Tex>
+    </View>
+  )
+}
+*/
+
+
+/*
